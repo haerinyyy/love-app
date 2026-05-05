@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#faf0e6">
   <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.jsdelivr.net/npm/@cloudbase/js-sdk@1.1.2/lib/cloudbase.min.js"></script>
   <title>💝 给宝贝</title>
   <style>
     /* Reset & Base */
@@ -455,6 +456,7 @@
       herBirthday: { month: 12, day: 28 }, // Dec 28
       city: 'Beijing', // for weather
     };
+    const CLOUD_ENV = 'love-app-d4g976650d6b74c51';
 
     // ============================================================
     //  LOVE LETTERS  (60 条)
@@ -733,57 +735,59 @@
     // ============================================================
     //  MESSAGE BOARD
     // ============================================================
-    const STORAGE_KEY = 'loveApp_messages';
+    const cbdApp = cloudbase.init({ env: CLOUD_ENV });
+    const db = cbdApp.database();
+    const msgCol = db.collection('messages');
 
-    function loadMessages() {
+    async function fetchMessages() {
       try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
-      } catch { return []; }
+        const res = await msgCol.orderBy('time', 'desc').get();
+        return res.data || [];
+      } catch (e) {
+        console.error('fetch msgs error:', e);
+        return [];
+      }
     }
 
-    function saveMessages(msgs) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
-      } catch (e) { /* ignore */ }
-    }
-
-    function addMessage(text, author) {
+    async function addMessage(text, author) {
       if (!text || text.trim() === '') return;
-      const msgs = loadMessages();
-      msgs.push({
-        id: Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-        text: text.trim(),
-        author: author || '她',
-        time: new Date().toISOString(),
-        reply: null,
-      });
-      saveMessages(msgs);
-      renderMessages();
+      try {
+        await msgCol.add({
+          text: text.trim(),
+          author: author || '她',
+          time: new Date().toISOString(),
+          reply: null,
+        });
+        renderMessages();
+      } catch (e) {
+        console.error('add msg error:', e);
+        showToast('留言发送失败，再试一下 😅');
+      }
     }
 
-    function replyToMessage(msgId, replyText) {
+    async function replyToMessage(msgId, replyText) {
       if (!replyText || replyText.trim() === '') return;
-      const msgs = loadMessages();
-      const idx = msgs.findIndex(m => m.id === msgId);
-      if (idx === -1) return;
-      msgs[idx].reply = replyText.trim();
-      saveMessages(msgs);
-      renderMessages();
+      try {
+        await msgCol.doc(msgId).update({ reply: replyText.trim() });
+        renderMessages();
+      } catch (e) {
+        console.error('reply error:', e);
+        showToast('回复失败，再试一下 😅');
+      }
     }
 
-    function renderMessages() {
+    async function renderMessages() {
       const container = document.getElementById('msgList');
-      const msgs = loadMessages();
+      container.innerHTML = '<div class="msg-empty">加载留言中...</div>';
+
+      const msgs = await fetchMessages();
 
       if (msgs.length === 0) {
         container.innerHTML = '<div class="msg-empty">还没有留言，写点什么吧 💕</div>';
         return;
       }
 
-      // Show newest first
-      const sorted = [...msgs].reverse();
-      container.innerHTML = sorted.map(m => {
+      container.innerHTML = msgs.map(m => {
         const time = new Date(m.time);
         const timeStr = `${time.getMonth()+1}/${time.getDate()} ${time.getHours().toString().padStart(2,'0')}:${time.getMinutes().toString().padStart(2,'0')}`;
         const isMe = m.author === '你';
@@ -792,10 +796,9 @@
         if (m.reply) {
           replyHtml = `<div class="msg-reply">${m.reply}</div>`;
         } else if (!isMe) {
-          // Show reply button for her messages only
           replyHtml = `
             <div style="margin-top: 6px; margin-left: 16px;">
-              <button class="reply-btn" data-id="${m.id}" style="font-size:0.75rem; color:#d4726a; background:none; border:1px solid #e8d5cc; border-radius:8px; padding:4px 12px; cursor:pointer;">回复</button>
+              <button class="reply-btn" data-id="${m._id}" style="font-size:0.75rem; color:#d4726a; background:none; border:1px solid #e8d5cc; border-radius:8px; padding:4px 12px; cursor:pointer;">回复</button>
             </div>
           `;
         }
@@ -812,7 +815,6 @@
         `;
       }).join('');
 
-      // Attach reply button handlers
       document.querySelectorAll('.reply-btn').forEach(btn => {
         btn.addEventListener('click', function() {
           const id = this.dataset.id;

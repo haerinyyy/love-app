@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#faf0e6">
   <link rel="manifest" href="manifest.json">
-  <script src="https://cdn.jsdelivr.net/npm/@cloudbase/js-sdk@1.1.2/lib/cloudbase.min.js"></script>
+  <script src="https://acc.cloudbase.net/sdk/js/1.1.2/cloudbase.min.js"></script>
   <title>💝 给宝贝</title>
   <style>
     /* Reset & Base */
@@ -735,11 +735,17 @@
     // ============================================================
     //  MESSAGE BOARD
     // ============================================================
-    const cbdApp = cloudbase.init({ env: CLOUD_ENV });
-    const db = cbdApp.database();
-    const msgCol = db.collection('messages');
+    let msgCol = null;
+    try {
+      const cbdApp = cloudbase.init({ env: CLOUD_ENV });
+      const db = cbdApp.database();
+      msgCol = db.collection('messages');
+    } catch (e) {
+      console.warn('CloudBase init failed, messages unavailable:', e);
+    }
 
     async function fetchMessages() {
+      if (!msgCol) return [];
       try {
         const res = await msgCol.orderBy('time', 'desc').get();
         return res.data || [];
@@ -751,6 +757,7 @@
 
     async function addMessage(text, author) {
       if (!text || text.trim() === '') return;
+      if (!msgCol) { showToast('数据库未连接 😅'); return; }
       try {
         await msgCol.add({
           text: text.trim(),
@@ -767,6 +774,7 @@
 
     async function replyToMessage(msgId, replyText) {
       if (!replyText || replyText.trim() === '') return;
+      if (!msgCol) { showToast('数据库未连接 😅'); return; }
       try {
         await msgCol.doc(msgId).update({ reply: replyText.trim() });
         renderMessages();

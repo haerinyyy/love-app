@@ -738,20 +738,28 @@
     let msgCol = null;
     try {
       const cbdApp = cloudbase.init({ env: CLOUD_ENV });
-      const db = cbdApp.database();
-      msgCol = db.collection('messages');
+      cbdApp.auth().signInAnonymously().then(() => {
+        const db = cbdApp.database();
+        msgCol = db.collection('messages');
+        renderMessages();
+      }).catch(e => {
+        console.warn('CloudBase auth failed:', e);
+      });
     } catch (e) {
       console.warn('CloudBase init failed, messages unavailable:', e);
     }
 
+    let msgsReady = false;
+
     async function fetchMessages() {
-      if (!msgCol) return [];
+      if (!msgCol) return null;
       try {
         const res = await msgCol.orderBy('time', 'desc').get();
+        msgsReady = true;
         return res.data || [];
       } catch (e) {
         console.error('fetch msgs error:', e);
-        return [];
+        return null;
       }
     }
 
@@ -786,9 +794,13 @@
 
     async function renderMessages() {
       const container = document.getElementById('msgList');
-      container.innerHTML = '<div class="msg-empty">加载留言中...</div>';
 
       const msgs = await fetchMessages();
+
+      if (msgs === null) {
+        container.innerHTML = '<div class="msg-empty">加载留言中...</div>';
+        return;
+      }
 
       if (msgs.length === 0) {
         container.innerHTML = '<div class="msg-empty">还没有留言，写点什么吧 💕</div>';

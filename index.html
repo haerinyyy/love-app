@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#faf0e6">
+  <link rel="manifest" href="manifest.json">
+  <title>💝 给宝贝</title>
+  <style>
+    /* Reset & Base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #faf0e6;
+      color: #5a3e3b;
+      min-height: 100vh;
+      padding: 20px 16px 40px;
+      background-image: radial-gradient(ellipse at top, #fff5ee 0%, #faf0e6 100%);
+    }
+
+    /* Typography */
+    h1, h2, h3 { font-weight: 600; }
+    .subtitle { font-size: 0.9rem; color: #b88a84; }
+
+    /* Layout containers */
+    .container { max-width: 420px; margin: 0 auto; }
+
+    /* Card */
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 20px;
+      padding: 24px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 16px rgba(180, 120, 100, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      transition: transform 0.2s;
+    }
+    .card:active { transform: scale(0.98); }
+
+    /* Header / Greeting */
+    .greeting {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 12px;
+    }
+    .greeting-left { flex: 1; min-width: 0; }
+    .greeting-emoji { font-size: 1.8rem; display: block; margin-bottom: 2px; }
+    .greeting-text { font-size: 1.15rem; color: #7a5a52; font-weight: 500; }
+    .greeting-date { font-size: 0.8rem; color: #b88a84; margin-top: 2px; }
+    .greeting-right { flex-shrink: 0; }
+    .daily-chara {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(245, 160, 184, 0.3);
+      background: #fff5f0;
+      box-shadow: 0 2px 12px rgba(245, 160, 184, 0.2);
+    }
+
+    /* Hero - Days Together */
+    .hero {
+      text-align: center;
+      padding: 32px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 100px; height: 100px;
+      background: radial-gradient(circle, rgba(232, 160, 160, 0.15), transparent);
+      border-radius: 50%;
+    }
+    .hero-label { font-size: 0.95rem; color: #b88a84; letter-spacing: 2px; }
+    .hero-number {
+      font-size: 4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #d4726a, #e8a0a0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+      margin: 6px 0;
+    }
+    .hero-unit { font-size: 1.1rem; color: #7a5a52; margin-top: -4px; }
+    .hero-small { font-size: 0.85rem; color: #b88a84; margin-top: 8px; }
+
+    /* Heart decoration */
+    .heart-divider {
+      text-align: center;
+      font-size: 0.7rem;
+      color: #e8a0a0;
+      letter-spacing: 6px;
+      margin: 4px 0 12px;
+      opacity: 0.6;
+    }
+
+    /* Countdown grid */
+    .countdown-grid { display: flex; gap: 12px; }
+    .countdown-item {
+      flex: 1;
+      text-align: center;
+      padding: 16px 8px;
+      border-radius: 14px;
+      background: rgba(250, 240, 230, 0.6);
+    }
+    .countdown-icon { font-size: 1.3rem; }
+    .countdown-label { font-size: 0.8rem; color: #b88a84; margin: 4px 0; }
+    .countdown-number {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #d4726a;
+    }
+    .countdown-unit { font-size: 0.75rem; color: #b88a84; }
+
+    /* Love Letter */
+    .letter-card { position: relative; }
+    .letter-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .letter-header h2 { font-size: 1rem; color: #7a5a52; }
+    .letter-icon { font-size: 1.2rem; }
+    .letter-content {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: #5a3e3b;
+      padding: 8px 4px;
+      min-height: 60px;
+    }
+    .letter-content::before { content: '「'; color: #e8a0a0; }
+    .letter-content::after { content: '」'; color: #e8a0a0; }
+    .letter-footer {
+      text-align: right;
+      font-size: 0.75rem;
+      color: #c9aaa4;
+      margin-top: 8px;
+    }
+
+    /* Milestones */
+    .milestones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .milestone-tag {
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(232, 160, 160, 0.12);
+      color: #b88a84;
+    }
+    .milestone-tag.active { background: rgba(212, 114, 106, 0.15); color: #d4726a; font-weight: 500; }
+
+    /* Message Board */
+    .msg-list { margin-top: 16px; max-height: 300px; overflow-y: auto; }
+    .msg-item {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(180, 120, 100, 0.08);
+    }
+    .msg-item:last-child { border-bottom: none; }
+    .msg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .msg-author { font-size: 0.8rem; font-weight: 600; color: #7a5a52; }
+    .msg-author.me { color: #d4726a; }
+    .msg-time { font-size: 0.7rem; color: #c9aaa4; }
+    .msg-text { font-size: 0.9rem; line-height: 1.5; }
+    .msg-input-area {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .msg-input-area input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1.5px solid #e8d5cc;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      outline: none;
+      background: rgba(255,255,255,0.7);
+      color: #5a3e3b;
+      transition: border-color 0.2s;
+    }
+    .msg-input-area input:focus { border-color: #d4726a; }
+    .msg-input-area input::placeholder { color: #d5b8b0; }
+    .msg-input-area button {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #d4726a, #e8a0a0);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .msg-input-area button:active { transform: scale(0.96); opacity: 0.85; }
+    .msg-empty {
+      text-align: center;
+      color: #d5b8b0;
+      font-size: 0.85rem;
+      padding: 20px 0;
+    }
+    .msg-reply {
+      margin-left: 16px;
+      padding: 8px 12px;
+      background: rgba(250, 240, 230, 0.6);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      margin-top: 6px;
+      position: relative;
+    }
+    .msg-reply::before {
+      content: '你的回复：';
+      font-size: 0.75rem;
+      color: #d4726a;
+      font-weight: 500;
+    }
+
+    /* Miss You Button */
+    .miss-section {
+      text-align: center;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(180, 120, 100, 0.1);
+    }
+    .miss-btn {
+      background: none;
+      border: 2px solid #e8a0a0;
+      border-radius: 30px;
+      padding: 10px 32px;
+      font-size: 1rem;
+      color: #d4726a;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+    .miss-btn:hover { background: rgba(232, 160, 160, 0.08); }
+    .miss-btn:active { transform: scale(0.95); }
+    .miss-heart {
+      display: inline-block;
+      transition: transform 0.3s;
+    }
+    .miss-btn.sent .miss-heart {
+      animation: heartPop 0.5s ease;
+    }
+    @keyframes heartPop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.4); }
+      100% { transform: scale(1); }
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #d5b8b0;
+      margin-top: 32px;
+    }
+
+    /* Utility */
+    .hidden { display: none !important; }
+    .text-center { text-align: center; }
+
+    /* Weather Card */
+    .weather-card { padding: 18px 20px; }
+    .weather-content { display: flex; align-items: center; gap: 16px; }
+    .weather-main { display: flex; align-items: center; gap: 8px; }
+    .weather-icon { font-size: 2.4rem; line-height: 1; }
+    .weather-temp-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #7a5a52;
+    }
+    .weather-temp-unit { font-size: 1rem; color: #b88a84; margin-left: 2px; }
+    .weather-remark {
+      flex: 1;
+      font-size: 0.9rem;
+      color: #7a5a52;
+      line-height: 1.5;
+      padding-left: 4px;
+      border-left: 2px solid rgba(232, 160, 160, 0.25);
+    }
+    .weather-loading, .weather-error {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #c9aaa4;
+      padding: 6px 0;
+    }
+    .weather-error { font-size: 0.8rem; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(90, 62, 59, 0.9);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 14px;
+      font-size: 0.85rem;
+      opacity: 0;
+      transition: all 0.4s;
+      pointer-events: none;
+      white-space: nowrap;
+      backdrop-filter: blur(4px);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card { animation: fadeInUp 0.5s ease both; }
+    .card:nth-child(2) { animation-delay: 0.1s; }
+    .card:nth-child(3) { animation-delay: 0.2s; }
+    .card:nth-child(4) { animation-delay: 0.3s; }
+    .card:nth-child(5) { animation-delay: 0.4s; }
+
+    /* Scrollbar styling */
+    .msg-list::-webkit-scrollbar { width: 4px; }
+    .msg-list::-webkit-scrollbar-track { background: transparent; }
+    .msg-list::-webkit-scrollbar-thumb { background: #e8d5cc; border-radius: 4px; }
+
+    /* Responsive */
+    @media (max-width: 360px) {
+      .hero-number { font-size: 3rem; }
+      .countdown-number { font-size: 1.3rem; }
+      body { padding: 16px 12px 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <!-- Greeting -->
+    <div class="greeting">
+      <div class="greeting-left">
+        <span class="greeting-emoji" id="greetingEmoji">☀️</span>
+        <div class="greeting-text" id="greetingText">下午好，宝贝</div>
+        <div class="greeting-date" id="greetingDate"></div>
+      </div>
+      <div class="greeting-right">
+        <img id="dailyChara" class="daily-chara" src="" alt="">
+      </div>
+    </div>
+
+    <!-- Hero: Days Together -->
+    <div class="card hero">
+      <div class="hero-label">在一起的第</div>
+      <div class="hero-number" id="daysTogether">0</div>
+      <div class="hero-unit">天 ❤️</div>
+      <div class="heart-divider">✦ ✦ ✦</div>
+      <div class="milestones" id="milestones"></div>
+    </div>
+
+    <!-- Countdowns -->
+    <div class="card">
+      <div class="countdown-grid">
+        <div class="countdown-item">
+          <div class="countdown-icon">🎂</div>
+          <div class="countdown-label">你的生日</div>
+          <div class="countdown-number" id="birthdayCountdown">--</div>
+          <div class="countdown-unit">天后</div>
+        </div>
+        <div class="countdown-item">
+          <div class="countdown-icon">💍</div>
+          <div class="countdown-label">周年纪念</div>
+          <div class="countdown-number" id="anniversaryCountdown">--</div>
+          <div class="countdown-unit">天后</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weather -->
+    <div class="card weather-card" id="weatherCard">
+      <div class="weather-loading" id="weatherLoading">🌤 加载天气中...</div>
+      <div class="weather-content hidden" id="weatherContent">
+        <div class="weather-main">
+          <span class="weather-icon" id="weatherIcon">☀️</span>
+          <div class="weather-temp">
+            <span class="weather-temp-value" id="weatherTemp">--</span>
+            <span class="weather-temp-unit">°C</span>
+          </div>
+        </div>
+        <div class="weather-remark" id="weatherRemark">加载中...</div>
+      </div>
+      <div class="weather-error hidden" id="weatherError">😅 天气暂时加载不了，但不影响爱你</div>
+    </div>
+
+    <!-- Daily Love Letter -->
+    <div class="card letter-card">
+      <div class="letter-header">
+        <span class="letter-icon">💌</span>
+        <h2>今日情话</h2>
+      </div>
+      <div class="letter-content" id="loveLetter">加载中...</div>
+      <div class="letter-footer" id="letterFooter"></div>
+    </div>
+
+    <!-- Message Board -->
+    <div class="card" id="messageBoard">
+      <div class="letter-header">
+        <span class="letter-icon">💬</span>
+        <h2>留言板</h2>
+      </div>
+
+      <!-- Message list -->
+      <div class="msg-list" id="msgList">
+        <div class="msg-empty">还没有留言，写点什么吧 💕</div>
+      </div>
+
+      <!-- Input area -->
+      <div class="msg-input-area">
+        <input type="text" id="msgInput" placeholder="写下你想说的话..." maxlength="200" autocomplete="off">
+        <button id="msgSendBtn">发送 💌</button>
+      </div>
+
+      <!-- Miss You -->
+      <div class="miss-section">
+        <button id="missBtn" class="miss-btn">
+          <span class="miss-heart">💕</span>
+          想你
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">💝 made with love</div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    // ============================================================
+    //  CONFIG
+    // ============================================================
+    const CONFIG = {
+      togetherDate: new Date(2025, 11, 31, 13, 0, 0), // Dec 31, 2025 1:00 PM
+      herBirthday: { month: 12, day: 28 }, // Dec 28
+      city: 'Beijing', // for weather
+    };
+
+    // ============================================================
+    //  LOVE LETTERS  (60 条)
+    // ============================================================
+    const LOVE_LETTERS = [
+      "今天想你了，比昨天多一点，比明天少一点。",
+      "今天天气很好，但不如你笑起来的样子好看。",
+      "和你在一起的每一天，都是好天气。",
+      "你在的地方，就是我想去的地方。",
+      "我想你了——这句话一天要说好多遍。",
+      "和你一起发呆，也是一件很幸福的事。",
+      "你是我平淡生活里最甜的那颗糖。",
+      "和你在一起，我从来没有羡慕过别人。",
+      "我的一天从想你开始，到梦到你结束。",
+      "不管几点，你找我，我都在。",
+      "你是我所有温柔和勇气的来源。",
+      "只要你在，我就觉得一切都好。",
+      "我没什么大本事，就是想和你在一起一辈子。",
+      "今天也想见你，明天也是，每一天都是。",
+      "你的快乐，比什么都重要。",
+      "你是我最想留住的幸运。",
+      "我喜欢你，从日出到日落，从春夏到秋冬。",
+      "和你在一起的时候，时间总是不够用。",
+      "你是我的软肋，也是我的铠甲。",
+      "我想和你一起醒来，在每个清晨。",
+      "你的笑容，是我一天中最美好的事情。",
+      "不管发生什么，我都会在你身边。",
+      "遇见你之后，每一天都值得期待。",
+      "你是我最想分享所有美好的人。",
+      "有你在，冬天的风都是温柔的。",
+      "这辈子最幸运的事，就是那天鼓起勇气走向你。",
+      "你一笑，整个世界都亮了。",
+      "和你在一起，吃什么都是美食，去哪都是风景。",
+      "我想把世界上所有的好运都攒起来送给你。",
+      "你出现之后，我的世界就变了一个颜色。",
+      "你在我心里，永远是第一位的。",
+      "我的未来规划里，每一个版本都有你。",
+      "和你在一起的每分每秒，都是生命里最好的礼物。",
+      "不需要刻意做什么，只要你在我就安心。",
+      "每次看到你笑，我就觉得今天真好。",
+      "你的眼睛里有星星，而星星里有我。",
+      "和你在一起的每个瞬间，我都想牢牢记住。",
+      "你就是我想要的未来。",
+      "这世界那么多人，多幸运，我有了我们。",
+      "你是我每天早起的第一个念头，也是每晚睡前最后的思念。",
+      "和你在一起，我变成了更好的自己。",
+      "不管你在外面多坚强，在我这里你永远可以做一个小女孩。",
+      "我对你的喜欢，藏在每一句「晚安」里。",
+      "你是我所有计划里的例外，也是我所有例外里的坚持。",
+      "有你在身边，连空气都是甜的。",
+      "不管多晚，我都等你回家。",
+      "你是我最想炫耀的小骄傲。",
+      "和你在一起浪费时间，我觉得是世界上最浪漫的事。",
+      "这辈子很短，我想好好珍惜你。",
+      "你的名字，是我听过最短的情诗。",
+      "我喜欢的样子，你全都有。",
+      "就算全世界都觉得你不够好，在我眼里你就是最好的。",
+      "你是我疲惫生活里的英雄梦。",
+      "爱你，是我做过最勇敢也最温柔的事。",
+      "你不在身边的时候，连风都是想念的形状。",
+      "不要害怕，我会一直牵着你的手。",
+      "你是我用一辈子也读不完的书。",
+      "你说晚安的时候，我连梦里都是甜的。",
+      "和你在一起的每一天，我都像第一天一样心动。",
+      "我爱你，不只是今天，是每一天。"
+    ];
+
+    // ============================================================
+    //  DAILY CHARACTER IMAGES
+    // ============================================================
+    function buildImagePaths() {
+      const melody = [];
+      for (let i = 6527; i <= 6550; i++) {
+        melody.push(`my%20melody/IMG_${i}.JPG`);
+      }
+      const squid = [];
+      for (let i = 6551; i <= 6581; i++) {
+        squid.push(`zhangyuge/IMG_${i}.JPG`);
+      }
+      return { melody, squid, all: [...melody, ...squid] };
+    }
+    const ALL_IMAGES = buildImagePaths();
+
+    // Pick one image deterministically based on the date
+    function getDailyChara() {
+      const now = getNow();
+      const startOfYear = new Date(now.getFullYear(), 0, 0);
+      const diff = now.getTime() - startOfYear.getTime();
+      const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+      return ALL_IMAGES.all[dayOfYear % ALL_IMAGES.all.length];
+    }
+
+    // ============================================================
+    //  UTILITY FUNCTIONS
+    // ============================================================
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = date.getMonth() + 1;
+      const d = date.getDate();
+      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      const w = weekdays[date.getDay()];
+      return `${y}年${m}月${d}日 星期${w}`;
+    }
+
+    function getToday() {
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    }
+
+    function getNow() {
+      return new Date();
+    }
+
+    // Days between two dates (date1 - date2)
+    function daysBetween(d1, d2) {
+      const diff = d1.getTime() - d2.getTime();
+      return Math.floor(diff / (1000 * 60 * 60 * 24));
+    }
+
+    // Days since together (including partial day)
+    function getDaysTogether() {
+      const now = getNow();
+      const start = CONFIG.togetherDate;
+      const diff = now.getTime() - start.getTime();
+      if (diff < 0) return 0;
+      return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1; // +1 because day 1 is the first day
+    }
+
+    // Days until next birthday
+    function getDaysUntilBirthday() {
+      const now = getNow();
+      const currentYear = now.getFullYear();
+      const bdayThisYear = new Date(currentYear, CONFIG.herBirthday.month - 1, CONFIG.herBirthday.day);
+      bdayThisYear.setHours(0, 0, 0, 0);
+
+      if (now <= bdayThisYear) {
+        return Math.ceil((bdayThisYear.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      } else {
+        const bdayNextYear = new Date(currentYear + 1, CONFIG.herBirthday.month - 1, CONFIG.herBirthday.day);
+        bdayNextYear.setHours(0, 0, 0, 0);
+        return Math.ceil((bdayNextYear.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      }
+    }
+
+    // Days until next anniversary
+    function getDaysUntilAnniversary() {
+      const now = getNow();
+      const currentYear = now.getFullYear();
+      const anniThisYear = new Date(currentYear, CONFIG.togetherDate.getMonth(), CONFIG.togetherDate.getDate());
+      anniThisYear.setHours(0, 0, 0, 0);
+
+      if (now <= anniThisYear) {
+        return Math.ceil((anniThisYear.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      } else {
+        const anniNextYear = new Date(currentYear + 1, CONFIG.togetherDate.getMonth(), CONFIG.togetherDate.getDate());
+        anniNextYear.setHours(0, 0, 0, 0);
+        return Math.ceil((anniNextYear.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      }
+    }
+
+    // Get today's love letter (deterministic by day of year)
+    function getTodaysLetter() {
+      const now = getNow();
+      const startOfYear = new Date(now.getFullYear(), 0, 0);
+      const diff = now.getTime() - startOfYear.getTime();
+      const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+      return LOVE_LETTERS[dayOfYear % LOVE_LETTERS.length];
+    }
+
+    // Get greeting based on time of day
+    function getGreeting() {
+      const hour = getNow().getHours();
+      if (hour < 6) return { emoji: '🌙', text: '这么晚了还不睡，宝贝' };
+      if (hour < 9) return { emoji: '🌅', text: '早上好，宝贝' };
+      if (hour < 12) return { emoji: '☀️', text: '上午好，宝贝' };
+      if (hour < 14) return { emoji: '🌤️', text: '中午好，宝贝' };
+      if (hour < 18) return { emoji: '☕', text: '下午好，宝贝' };
+      if (hour < 21) return { emoji: '🌆', text: '傍晚好，宝贝' };
+      return { emoji: '🌙', text: '晚上好，宝贝' };
+    }
+
+    // Get milestones
+    function getMilestones(days) {
+      const milestones = [100, 200, 300, 365, 500, 730, 1000];
+      const result = [];
+      for (const m of milestones) {
+        if (days < m) {
+          result.push({ label: `${m}天`, remaining: m - days, active: true });
+          break;
+        }
+      }
+      return result;
+    }
+
+    // ============================================================
+    //  WEATHER
+    // ============================================================
+    // Maps wttr.in weatherCode to emoji
+    function getWeatherEmoji(code) {
+      const c = Number(code);
+      if (c === 113) return '☀️';
+      if (c === 116) return '⛅';
+      if (c >= 119 && c <= 122) return '☁️';
+      if (c === 143 || c === 248 || c === 260) return '🌫️';
+      if (c === 176 || c === 263 || c === 266 || c === 293 || c === 296 || c === 299 || c === 302) return '🌧️';
+      if (c === 185 || c === 281 || c === 284 || c === 311 || c === 314 || c === 350) return '🌧️';
+      if (c === 200 || c >= 386) return '⛈️';
+      if ((c >= 305 && c <= 308) || (c >= 353 && c <= 359)) return '🌧️';
+      if (c === 179 || c === 227 || c === 230 || (c >= 323 && c <= 338) || (c >= 368 && c <= 371)) return '❄️';
+      if (c === 182 || c === 317 || c === 320 || c === 362 || c === 365) return '🌨️';
+      return '🌤️';
+    }
+
+    // Generate caring reminder based on weather
+    function getWeatherRemark(tempC, weatherCode, weatherDesc) {
+      const temp = Number(tempC);
+      const code = Number(weatherCode);
+      const desc = (weatherDesc || '').toLowerCase();
+
+      // Rain detection
+      const rainCodes = [176, 185, 200, 263, 266, 281, 284, 293, 296, 299, 302, 305, 308, 311, 314, 353, 356, 359, 386, 389];
+      const snowCodes = [179, 182, 227, 230, 317, 320, 323, 326, 329, 332, 335, 338, 350, 362, 365, 368, 371, 374, 377, 392, 395];
+      const fogCodes = [143, 248, 260];
+      const thunderCodes = [200, 386, 389, 392, 395];
+
+      if (thunderCodes.includes(code)) return '打雷了，别站在树下，乖乖待在屋里 ⛈️';
+      if (snowCodes.includes(code)) return '下雪了！出门注意路滑，多穿点 ❄️';
+      if (rainCodes.includes(code)) return '今天有雨，出门记得带伞 ☔';
+      if (fogCodes.includes(code)) return '今天雾霾比较大，出门记得戴口罩 😷';
+
+      // Temperature based
+      if (temp < 0) return '今天零下了！手套围巾帽子安排上，别冻着 🧣';
+      if (temp <= 8) return '今天挺冷的，多穿一件再出门 🧥';
+      if (temp <= 15) return '今天有点凉，带件外套比较稳妥';
+      if (temp <= 25) return '天气刚刚好，适合出去走走 🌤️';
+      if (temp <= 33) return '今天有点热，记得多喝水 💧';
+      return '今天很热！注意防暑，别在太阳底下太久 🫠';
+    }
+
+    function fetchWeather() {
+      const loadingEl = document.getElementById('weatherLoading');
+      const contentEl = document.getElementById('weatherContent');
+      const errorEl = document.getElementById('weatherError');
+      const iconEl = document.getElementById('weatherIcon');
+      const tempEl = document.getElementById('weatherTemp');
+      const remarkEl = document.getElementById('weatherRemark');
+
+      const url = `https://wttr.in/${CONFIG.city}?format=j1&lang=zh`;
+
+      fetch(url)
+        .then(res => {
+          if (!res.ok) throw new Error('Weather fetch failed');
+          return res.json();
+        })
+        .then(data => {
+          const current = data.current_condition[0];
+          const temp = current.temp_C;
+          const code = current.weatherCode;
+          const desc = current.weatherDesc[0]?.value || '';
+
+          iconEl.textContent = getWeatherEmoji(code);
+          tempEl.textContent = temp;
+          remarkEl.textContent = getWeatherRemark(temp, code, desc);
+
+          loadingEl.classList.add('hidden');
+          errorEl.classList.add('hidden');
+          contentEl.classList.remove('hidden');
+        })
+        .catch(() => {
+          loadingEl.classList.add('hidden');
+          contentEl.classList.add('hidden');
+          errorEl.classList.remove('hidden');
+        });
+    }
+
+    // ============================================================
+    //  MESSAGE BOARD
+    // ============================================================
+    const STORAGE_KEY = 'loveApp_messages';
+
+    function loadMessages() {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      } catch { return []; }
+    }
+
+    function saveMessages(msgs) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
+      } catch (e) { /* ignore */ }
+    }
+
+    function addMessage(text, author) {
+      if (!text || text.trim() === '') return;
+      const msgs = loadMessages();
+      msgs.push({
+        id: Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        text: text.trim(),
+        author: author || '她',
+        time: new Date().toISOString(),
+        reply: null,
+      });
+      saveMessages(msgs);
+      renderMessages();
+    }
+
+    function replyToMessage(msgId, replyText) {
+      if (!replyText || replyText.trim() === '') return;
+      const msgs = loadMessages();
+      const idx = msgs.findIndex(m => m.id === msgId);
+      if (idx === -1) return;
+      msgs[idx].reply = replyText.trim();
+      saveMessages(msgs);
+      renderMessages();
+    }
+
+    function renderMessages() {
+      const container = document.getElementById('msgList');
+      const msgs = loadMessages();
+
+      if (msgs.length === 0) {
+        container.innerHTML = '<div class="msg-empty">还没有留言，写点什么吧 💕</div>';
+        return;
+      }
+
+      // Show newest first
+      const sorted = [...msgs].reverse();
+      container.innerHTML = sorted.map(m => {
+        const time = new Date(m.time);
+        const timeStr = `${time.getMonth()+1}/${time.getDate()} ${time.getHours().toString().padStart(2,'0')}:${time.getMinutes().toString().padStart(2,'0')}`;
+        const isMe = m.author === '你';
+
+        let replyHtml = '';
+        if (m.reply) {
+          replyHtml = `<div class="msg-reply">${m.reply}</div>`;
+        } else if (!isMe) {
+          // Show reply button for her messages only
+          replyHtml = `
+            <div style="margin-top: 6px; margin-left: 16px;">
+              <button class="reply-btn" data-id="${m.id}" style="font-size:0.75rem; color:#d4726a; background:none; border:1px solid #e8d5cc; border-radius:8px; padding:4px 12px; cursor:pointer;">回复</button>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="msg-item">
+            <div class="msg-header">
+              <span class="msg-author ${isMe ? 'me' : ''}">${isMe ? '❤️ ' : ''}${m.author}</span>
+              <span class="msg-time">${timeStr}</span>
+            </div>
+            <div class="msg-text">${m.text}</div>
+            ${replyHtml}
+          </div>
+        `;
+      }).join('');
+
+      // Attach reply button handlers
+      document.querySelectorAll('.reply-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const id = this.dataset.id;
+          const reply = prompt('你的回复：');
+          if (reply !== null && reply.trim() !== '') {
+            replyToMessage(id, reply.trim());
+            showToast('回复已发送 💕');
+          }
+        });
+      });
+    }
+
+    // ============================================================
+    //  MISS YOU
+    // ============================================================
+    const SEND_KEY = 'SCT345090Ttc8N1PfgTQ4Cu6yN5YbIqjbN';
+    const MISS_KEY = 'loveApp_missCount';
+
+    function getMissCount() {
+      return parseInt(localStorage.getItem(MISS_KEY) || '0');
+    }
+
+    function sendMissYou() {
+      const count = getMissCount() + 1;
+      localStorage.setItem(MISS_KEY, count.toString());
+
+      const btn = document.getElementById('missBtn');
+      btn.classList.add('sent');
+      setTimeout(() => btn.classList.remove('sent'), 600);
+
+      const url = `https://sctapi.ftqq.com/${SEND_KEY}.send`;
+      const title = '💕 宝贝正在想你';
+      const content = `第 ${count} 次想你了 💕`;
+
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `title=${encodeURIComponent(title)}&content=${encodeURIComponent(content)}`
+      })
+        .then(res => {
+          if (res.ok) showToast('他收到啦 💕');
+          else showToast('💕 心意已记下');
+        })
+        .catch(() => showToast('💕 心意已记下'));
+    }
+
+    // Long-press 15s to reset count
+    let resetTimer = null;
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('missBtn');
+      function startReset() {
+        resetTimer = setTimeout(() => {
+          localStorage.setItem(MISS_KEY, '0');
+          showToast('已归零 ✅');
+        }, 15000);
+      }
+      function cancelReset() { clearTimeout(resetTimer); }
+      btn.addEventListener('mousedown', startReset);
+      btn.addEventListener('mouseup', cancelReset);
+      btn.addEventListener('mouseleave', cancelReset);
+      btn.addEventListener('touchstart', startReset);
+      btn.addEventListener('touchend', cancelReset);
+      btn.addEventListener('touchmove', cancelReset);
+    });
+
+    // ============================================================
+    //  TOAST
+    // ============================================================
+    let toastTimer = null;
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    // ============================================================
+    //  MAIN UPDATE
+    // ============================================================
+    function updateUI() {
+      const now = getNow();
+
+      // Date
+      document.getElementById('greetingDate').textContent = formatDate(now);
+
+      // Greeting
+      const greeting = getGreeting();
+      document.getElementById('greetingEmoji').textContent = greeting.emoji;
+      document.getElementById('greetingText').textContent = greeting.text;
+
+      // Days together
+      const days = getDaysTogether();
+      document.getElementById('daysTogether').textContent = days;
+
+      // Milestones
+      const milestones = getMilestones(days);
+      const msContainer = document.getElementById('milestones');
+      if (milestones.length > 0) {
+        const m = milestones[0];
+        msContainer.innerHTML = `
+          <span class="milestone-tag active">🎯 距离 ${m.label} 还有 ${m.remaining} 天</span>
+        `;
+      } else {
+        msContainer.innerHTML = '';
+      }
+
+      // Birthday countdown
+      const bdayDays = getDaysUntilBirthday();
+      document.getElementById('birthdayCountdown').textContent = bdayDays;
+
+      // Anniversary countdown
+      const anniDays = getDaysUntilAnniversary();
+      document.getElementById('anniversaryCountdown').textContent = anniDays;
+
+      // Love letter
+      const letter = getTodaysLetter();
+      document.getElementById('loveLetter').textContent = letter;
+      document.getElementById('letterFooter').textContent = `—— ${now.getMonth()+1}/${now.getDate()} · 今日份的喜欢`;
+
+      // Birthday special
+      if (now.getMonth() === CONFIG.herBirthday.month - 1 && now.getDate() === CONFIG.herBirthday.day) {
+        document.getElementById('loveLetter').textContent = '🎂🎂🎂 生日快乐我的宝贝！你是这个世界上最好的礼物！爱你！🎂🎂🎂';
+        document.getElementById('letterFooter').textContent = '🎉 生日快乐！';
+      }
+
+      // Anniversary special
+      if (now.getMonth() === CONFIG.togetherDate.getMonth() && now.getDate() === CONFIG.togetherDate.getDate()) {
+        const years = now.getFullYear() - CONFIG.togetherDate.getFullYear();
+        document.getElementById('loveLetter').textContent = `💍💍💍 ${years}周年快乐！和你在一起的每一天都是最好的时光。接下来的每一个周年，我都要和你一起过。爱你！💍💍💍`;
+        document.getElementById('letterFooter').textContent = `🎉 ${years}周年快乐！`;
+      }
+    }
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    function init() {
+      updateUI();
+      fetchWeather();
+      // Daily character image
+      document.getElementById('dailyChara').src = getDailyChara();
+
+      // Message board
+      const msgInput = document.getElementById('msgInput');
+      const msgSendBtn = document.getElementById('msgSendBtn');
+
+      function handleSend() {
+        const text = msgInput.value.trim();
+        if (!text) return;
+        addMessage(text, '她');
+        msgInput.value = '';
+        showToast('留言已保存 💕');
+        msgInput.focus();
+      }
+
+      msgSendBtn.addEventListener('click', handleSend);
+      msgInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleSend();
+      });
+
+      // Miss you button
+      document.getElementById('missBtn').addEventListener('click', sendMissYou);
+
+      renderMessages();
+
+      // Auto-refresh at midnight
+      const now2 = getNow();
+      const nextMidnight = new Date(now2.getFullYear(), now2.getMonth(), now2.getDate() + 1, 0, 0, 0);
+      const msToMidnight = nextMidnight.getTime() - now2.getTime();
+      setTimeout(() => {
+        updateUI();
+        renderMessages();
+        fetchWeather();
+        document.getElementById('dailyChara').src = getDailyChara();
+        // Refresh every hour after that too
+        setInterval(() => { updateUI(); fetchWeather(); }, 60 * 60 * 1000);
+      }, msToMidnight);
+    }
+
+    // Run
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

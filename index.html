@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#faf0e6">
   <link rel="manifest" href="manifest.json">
-  <script src="https://acc.cloudbase.net/sdk/js/1.1.2/cloudbase.min.js"></script>
   <title>💝 给宝贝</title>
   <style>
     /* Reset & Base */
@@ -157,76 +156,6 @@
       color: #b88a84;
     }
     .milestone-tag.active { background: rgba(212, 114, 106, 0.15); color: #d4726a; font-weight: 500; }
-
-    /* Message Board */
-    .msg-list { margin-top: 16px; max-height: 300px; overflow-y: auto; }
-    .msg-item {
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(180, 120, 100, 0.08);
-    }
-    .msg-item:last-child { border-bottom: none; }
-    .msg-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-    }
-    .msg-author { font-size: 0.8rem; font-weight: 600; color: #7a5a52; }
-    .msg-author.me { color: #d4726a; }
-    .msg-time { font-size: 0.7rem; color: #c9aaa4; }
-    .msg-text { font-size: 0.9rem; line-height: 1.5; }
-    .msg-input-area {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .msg-input-area input {
-      flex: 1;
-      padding: 12px 16px;
-      border: 1.5px solid #e8d5cc;
-      border-radius: 14px;
-      font-size: 0.9rem;
-      outline: none;
-      background: rgba(255,255,255,0.7);
-      color: #5a3e3b;
-      transition: border-color 0.2s;
-    }
-    .msg-input-area input:focus { border-color: #d4726a; }
-    .msg-input-area input::placeholder { color: #d5b8b0; }
-    .msg-input-area button {
-      padding: 12px 20px;
-      background: linear-gradient(135deg, #d4726a, #e8a0a0);
-      color: white;
-      border: none;
-      border-radius: 14px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-      white-space: nowrap;
-    }
-    .msg-input-area button:active { transform: scale(0.96); opacity: 0.85; }
-    .msg-empty {
-      text-align: center;
-      color: #d5b8b0;
-      font-size: 0.85rem;
-      padding: 20px 0;
-    }
-    .msg-reply {
-      margin-left: 16px;
-      padding: 8px 12px;
-      background: rgba(250, 240, 230, 0.6);
-      border-radius: 10px;
-      font-size: 0.85rem;
-      margin-top: 6px;
-      position: relative;
-    }
-    .msg-reply::before {
-      content: '你的回复：';
-      font-size: 0.75rem;
-      color: #d4726a;
-      font-weight: 500;
-    }
 
     /* Miss You Button */
     .miss-section {
@@ -413,26 +342,9 @@
       <div class="letter-content" id="loveLetter">加载中...</div>
     </div>
 
-    <!-- Message Board -->
-    <div class="card" id="messageBoard">
-      <div class="letter-header">
-        <span class="letter-icon">💬</span>
-        <h2>留言板</h2>
-      </div>
-
-      <!-- Message list -->
-      <div class="msg-list" id="msgList">
-        <div class="msg-empty">还没有留言，写点什么吧 💕</div>
-      </div>
-
-      <!-- Input area -->
-      <div class="msg-input-area">
-        <input type="text" id="msgInput" placeholder="写下你想说的话..." maxlength="200" autocomplete="off">
-        <button id="msgSendBtn">发送 💌</button>
-      </div>
-
-      <!-- Miss You -->
-      <div class="miss-section">
+    <!-- Miss You -->
+    <div class="card" style="text-align: center; padding: 20px;">
+      <div class="miss-section" style="margin:0; padding:0; border:none;">
         <button id="missBtn" class="miss-btn">
           <span class="miss-heart">💕</span>
           想你
@@ -456,7 +368,6 @@
       herBirthday: { month: 12, day: 28 }, // Dec 28
       city: 'Beijing', // for weather
     };
-    const CLOUD_ENV = 'love-app-d4g976650d6b74c51';
 
     // ============================================================
     //  LOVE LETTERS  (60 条)
@@ -733,171 +644,6 @@
     }
 
     // ============================================================
-    //  MESSAGE BOARD  (CloudBase + localStorage fallback)
-    // ============================================================
-    const LOCAL_KEY = 'loveApp_messages';
-
-    // Start with localStorage
-    let useCloud = false;
-    let cloudCol = null;
-
-    // Try CloudBase
-    try {
-      const cbdApp = cloudbase.init({ env: CLOUD_ENV });
-      cbdApp.auth().signInAnonymously().then(() => {
-        const db = cbdApp.database();
-        cloudCol = db.collection('messages');
-        useCloud = true;
-        // Migrate existing local messages to cloud
-        migrateLocalToCloud();
-        renderMessages();
-      }).catch(() => { /* stay on localStorage */ });
-    } catch (e) { /* stay on localStorage */ }
-
-    function migrateLocalToCloud() {
-      try {
-        const local = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
-        if (local.length > 0) {
-          local.forEach(msg => {
-            cloudCol.add({
-              text: msg.text,
-              author: msg.author,
-              time: msg.time,
-              reply: msg.reply || null
-            });
-          });
-          localStorage.removeItem(LOCAL_KEY);
-        }
-      } catch (e) { /* ignore */ }
-    }
-
-    function getLocalMsgs() {
-      try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); }
-      catch { return []; }
-    }
-
-    function saveLocalMsgs(msgs) {
-      try { localStorage.setItem(LOCAL_KEY, JSON.stringify(msgs)); }
-      catch { /* ignore */ }
-    }
-
-    async function fetchMessages() {
-      if (useCloud && cloudCol) {
-        try {
-          const res = await cloudCol.orderBy('time', 'desc').get();
-          return res.data || [];
-        } catch (e) {
-          console.warn('cloud fetch failed, fallback to local:', e);
-          useCloud = false;
-        }
-      }
-      const local = getLocalMsgs();
-      return local.reverse();
-    }
-
-    async function addMessage(text, author) {
-      if (!text || text.trim() === '') return;
-      if (useCloud && cloudCol) {
-        try {
-          await cloudCol.add({
-            text: text.trim(),
-            author: author || '她',
-            time: new Date().toISOString(),
-            reply: null,
-          });
-          renderMessages();
-          return;
-        } catch (e) {
-          console.warn('cloud add failed, fallback to local:', e);
-          useCloud = false;
-        }
-      }
-      // localStorage fallback
-      const msgs = getLocalMsgs();
-      msgs.push({
-        id: Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-        text: text.trim(),
-        author: author || '她',
-        time: new Date().toISOString(),
-        reply: null,
-      });
-      saveLocalMsgs(msgs);
-      renderMessages();
-      showToast('留言已保存 💕');
-    }
-
-    async function replyToMessage(msgId, replyText) {
-      if (!replyText || replyText.trim() === '') return;
-      if (useCloud && cloudCol) {
-        try {
-          await cloudCol.doc(msgId).update({ reply: replyText.trim() });
-          renderMessages();
-          return;
-        } catch (e) {
-          useCloud = false;
-        }
-      }
-      // localStorage fallback
-      const msgs = getLocalMsgs();
-      const idx = msgs.findIndex(m => m.id === msgId);
-      if (idx === -1) return;
-      msgs[idx].reply = replyText.trim();
-      saveLocalMsgs(msgs);
-      renderMessages();
-    }
-
-    async function renderMessages() {
-      const container = document.getElementById('msgList');
-      container.innerHTML = '<div class="msg-empty">加载留言中...</div>';
-
-      let msgs = await fetchMessages();
-
-      if (!msgs || msgs.length === 0) {
-        container.innerHTML = '<div class="msg-empty">还没有留言，写点什么吧 💕</div>';
-        return;
-      }
-
-      container.innerHTML = msgs.map(m => {
-        const time = new Date(m.time);
-        const timeStr = `${time.getMonth()+1}/${time.getDate()} ${time.getHours().toString().padStart(2,'0')}:${time.getMinutes().toString().padStart(2,'0')}`;
-        const isMe = m.author === '你';
-
-        let replyHtml = '';
-        if (m.reply) {
-          replyHtml = `<div class="msg-reply">${m.reply}</div>`;
-        } else if (!isMe) {
-          replyHtml = `
-            <div style="margin-top: 6px; margin-left: 16px;">
-              <button class="reply-btn" data-id="${m._id || m.id}" style="font-size:0.75rem; color:#d4726a; background:none; border:1px solid #e8d5cc; border-radius:8px; padding:4px 12px; cursor:pointer;">回复</button>
-            </div>
-          `;
-        }
-
-        return `
-          <div class="msg-item">
-            <div class="msg-header">
-              <span class="msg-author ${isMe ? 'me' : ''}">${isMe ? '❤️ ' : ''}${m.author}</span>
-              <span class="msg-time">${timeStr}</span>
-            </div>
-            <div class="msg-text">${m.text}</div>
-            ${replyHtml}
-          </div>
-        `;
-      }).join('');
-
-      document.querySelectorAll('.reply-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const id = this.dataset.id;
-          const reply = prompt('你的回复：');
-          if (reply !== null && reply.trim() !== '') {
-            replyToMessage(id, reply.trim());
-            showToast('回复已发送 💕');
-          }
-        });
-      });
-    }
-
-    // ============================================================
     //  MISS YOU
     // ============================================================
     const SEND_KEY = 'SCT345090Ttc8N1PfgTQ4Cu6yN5YbIqjbN';
@@ -1026,28 +772,8 @@
       // Daily character image
       document.getElementById('dailyChara').src = getDailyChara();
 
-      // Message board
-      const msgInput = document.getElementById('msgInput');
-      const msgSendBtn = document.getElementById('msgSendBtn');
-
-      function handleSend() {
-        const text = msgInput.value.trim();
-        if (!text) return;
-        addMessage(text, '她');
-        msgInput.value = '';
-        showToast('留言已保存 💕');
-        msgInput.focus();
-      }
-
-      msgSendBtn.addEventListener('click', handleSend);
-      msgInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleSend();
-      });
-
       // Miss you button
       document.getElementById('missBtn').addEventListener('click', sendMissYou);
-
-      renderMessages();
 
       // Auto-refresh at midnight
       const now2 = getNow();
@@ -1055,7 +781,6 @@
       const msToMidnight = nextMidnight.getTime() - now2.getTime();
       setTimeout(() => {
         updateUI();
-        renderMessages();
         fetchWeather();
         document.getElementById('dailyChara').src = getDailyChara();
         // Refresh every hour after that too

@@ -733,76 +733,126 @@
     }
 
     // ============================================================
-    //  MESSAGE BOARD
+    //  MESSAGE BOARD  (CloudBase + localStorage fallback)
     // ============================================================
-    let msgCol = null;
+    const LOCAL_KEY = 'loveApp_messages';
+
+    // Start with localStorage
+    let useCloud = false;
+    let cloudCol = null;
+
+    // Try CloudBase
     try {
       const cbdApp = cloudbase.init({ env: CLOUD_ENV });
       cbdApp.auth().signInAnonymously().then(() => {
         const db = cbdApp.database();
-        msgCol = db.collection('messages');
+        cloudCol = db.collection('messages');
+        useCloud = true;
+        // Migrate existing local messages to cloud
+        migrateLocalToCloud();
         renderMessages();
-      }).catch(e => {
-        console.warn('CloudBase auth failed:', e);
-      });
-    } catch (e) {
-      console.warn('CloudBase init failed, messages unavailable:', e);
+      }).catch(() => { /* stay on localStorage */ });
+    } catch (e) { /* stay on localStorage */ }
+
+    function migrateLocalToCloud() {
+      try {
+        const local = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+        if (local.length > 0) {
+          local.forEach(msg => {
+            cloudCol.add({
+              text: msg.text,
+              author: msg.author,
+              time: msg.time,
+              reply: msg.reply || null
+            });
+          });
+          localStorage.removeItem(LOCAL_KEY);
+        }
+      } catch (e) { /* ignore */ }
     }
 
-    let msgsReady = false;
+    function getLocalMsgs() {
+      try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); }
+      catch { return []; }
+    }
+
+    function saveLocalMsgs(msgs) {
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify(msgs)); }
+      catch { /* ignore */ }
+    }
 
     async function fetchMessages() {
-      if (!msgCol) return null;
-      try {
-        const res = await msgCol.orderBy('time', 'desc').get();
-        msgsReady = true;
-        return res.data || [];
-      } catch (e) {
-        console.error('fetch msgs error:', e);
-        return null;
+      if (useCloud && cloudCol) {
+        try {
+          const res = await cloudCol.orderBy('time', 'desc').get();
+          return res.data || [];
+        } catch (e) {
+          console.warn('cloud fetch failed, fallback to local:', e);
+          useCloud = false;
+        }
       }
+      const local = getLocalMsgs();
+      return local.reverse();
     }
 
     async function addMessage(text, author) {
       if (!text || text.trim() === '') return;
-      if (!msgCol) { showToast('数据库未连接 😅'); return; }
-      try {
-        await msgCol.add({
-          text: text.trim(),
-          author: author || '她',
-          time: new Date().toISOString(),
-          reply: null,
-        });
-        renderMessages();
-      } catch (e) {
-        console.error('add msg error:', e);
-        showToast('留言发送失败，再试一下 😅');
+      if (useCloud && cloudCol) {
+        try {
+          await cloudCol.add({
+            text: text.trim(),
+            author: author || '她',
+            time: new Date().toISOString(),
+            reply: null,
+          });
+          renderMessages();
+          return;
+        } catch (e) {
+          console.warn('cloud add failed, fallback to local:', e);
+          useCloud = false;
+        }
       }
+      // localStorage fallback
+      const msgs = getLocalMsgs();
+      msgs.push({
+        id: Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        text: text.trim(),
+        author: author || '她',
+        time: new Date().toISOString(),
+        reply: null,
+      });
+      saveLocalMsgs(msgs);
+      renderMessages();
+      showToast('留言已保存 💕');
     }
 
     async function replyToMessage(msgId, replyText) {
       if (!replyText || replyText.trim() === '') return;
-      if (!msgCol) { showToast('数据库未连接 😅'); return; }
-      try {
-        await msgCol.doc(msgId).update({ reply: replyText.trim() });
-        renderMessages();
-      } catch (e) {
-        console.error('reply error:', e);
-        showToast('回复失败，再试一下 😅');
+      if (useCloud && cloudCol) {
+        try {
+          await cloudCol.doc(msgId).update({ reply: replyText.trim() });
+          renderMessages();
+          return;
+        } catch (e) {
+          useCloud = false;
+        }
       }
+      // localStorage fallback
+      const msgs = getLocalMsgs();
+      const idx = msgs.findIndex(m => m.id === msgId);
+      if (idx === -1) return;
+      msgs[idx].reply = replyText.trim();
+      saveLocalMsgs(msgs);
+      renderMessages();
     }
 
     async function renderMessages() {
       const container = document.getElementById('msgList');
+      container.innerHTML = '<div class="msg-empty">加载留言中...</div>';
 
-      const msgs = await fetchMessages();
+      let msgs = await fetchMessages();
 
-      if (msgs === null) {
-        container.innerHTML = '<div class="msg-empty">加载留言中...</div>';
-        return;
-      }
-
-      if (msgs.length === 0) {
+      if (!msgs || msgs.length === 0) {
         container.innerHTML = '<div class="msg-empty">还没有留言，写点什么吧 💕</div>';
         return;
       }
@@ -818,7 +868,7 @@
         } else if (!isMe) {
           replyHtml = `
             <div style="margin-top: 6px; margin-left: 16px;">
-              <button class="reply-btn" data-id="${m._id}" style="font-size:0.75rem; color:#d4726a; background:none; border:1px solid #e8d5cc; border-radius:8px; padding:4px 12px; cursor:pointer;">回复</button>
+              <button class="reply-btn" data-id="${m._id || m.id}" style="font-size:0.75rem; color:#d4726a; background:none; border:1px solid #e8d5cc; border-radius:8px; padding:4px 12px; cursor:pointer;">回复</button>
             </div>
           `;
         }

@@ -139,12 +139,6 @@
     }
     .letter-content::before { content: '「'; color: #e8a0a0; }
     .letter-content::after { content: '」'; color: #e8a0a0; }
-    .letter-footer {
-      text-align: right;
-      font-size: 0.75rem;
-      color: #c9aaa4;
-      margin-top: 8px;
-    }
 
     /* Milestones */
     .milestones {
@@ -416,7 +410,6 @@
         <h2>今日情话</h2>
       </div>
       <div class="letter-content" id="loveLetter">加载中...</div>
-      <div class="letter-footer" id="letterFooter"></div>
     </div>
 
     <!-- Message Board -->
@@ -939,19 +932,16 @@
       // Love letter
       const letter = getTodaysLetter();
       document.getElementById('loveLetter').textContent = letter;
-      document.getElementById('letterFooter').textContent = `—— ${now.getMonth()+1}/${now.getDate()} · 今日份的喜欢`;
 
       // Birthday special
       if (now.getMonth() === CONFIG.herBirthday.month - 1 && now.getDate() === CONFIG.herBirthday.day) {
         document.getElementById('loveLetter').textContent = '🎂🎂🎂 生日快乐我的宝贝！你是这个世界上最好的礼物！爱你！🎂🎂🎂';
-        document.getElementById('letterFooter').textContent = '🎉 生日快乐！';
       }
 
       // Anniversary special
       if (now.getMonth() === CONFIG.togetherDate.getMonth() && now.getDate() === CONFIG.togetherDate.getDate()) {
         const years = now.getFullYear() - CONFIG.togetherDate.getFullYear();
         document.getElementById('loveLetter').textContent = `💍💍💍 ${years}周年快乐！和你在一起的每一天都是最好的时光。接下来的每一个周年，我都要和你一起过。爱你！💍💍💍`;
-        document.getElementById('letterFooter').textContent = `🎉 ${years}周年快乐！`;
       }
     }
 
